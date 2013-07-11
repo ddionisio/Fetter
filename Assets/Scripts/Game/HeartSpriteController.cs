@@ -29,7 +29,8 @@ public class HeartSpriteController : MonoBehaviour {
     }
 
     void OnPlayerSpawn(EntityBase ent) {
-        mBlinker.enabled = false;
+        if(mBlinker != null)
+            mBlinker.enabled = false;
     }
 
     void OnPlayerSetState(EntityBase ent, int state) {

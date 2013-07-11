@@ -3,21 +3,18 @@ using System.Collections;
 
 public class HeartController : MonoBehaviour {
     public float speed = 1.0f; //if useMouse = false
-
-    public Transform ball;
-    public Transform line;
+    
+    public LayerMask harmLayerMask;
 
     private Player mPlayer;
+    private SphereCollider mSphereColl;
     private bool mInputEnabled = false;
     private Vector2 mCurDir = Vector2.zero;
     private float mCurSpeed = 0.0f;
     private Vector2 mCurVel = Vector2.zero;
     private Vector2 mInputAxis = Vector2.zero;
     private float mZ;
-
-    private Vector2 mDirToBall;
-    private float mLineLength;
-
+        
     public Player player { get { return mPlayer; } }
     public Vector2 curDir { get { return mCurDir; } }
     public Vector2 curVel { get { return mCurVel; } }
@@ -36,11 +33,19 @@ public class HeartController : MonoBehaviour {
         }
     }
 
+    void OnTriggerEnter(Collider col) {
+        if(((1 << col.gameObject.layer) & harmLayerMask) != 0) {
+            mPlayer.Hurt();
+        }
+    }
+
     void OnDestroy() {
         inputEnabled = false;
     }
 
     void Awake() {
+        mSphereColl = collider as SphereCollider;
+                
         mZ = transform.position.z;
     }
 
@@ -49,27 +54,7 @@ public class HeartController : MonoBehaviour {
 
         ent.setStateCallback += OnPlayerSetState;
     }
-
-    void Update() {
-        Vector2 pos = transform.position;
-        Vector2 ballPos = ball.position;
-        Vector2 dirToBall = ballPos - pos;
-        float len = dirToBall.magnitude;
-        if(len > 0.0f) {
-            mDirToBall = dirToBall;
-            mLineLength = len;
-
-            line.up = mDirToBall;
-
-            Vector3 linePos = line.position;
-            line.position = new Vector3(pos.x, pos.y, linePos.z);
-
-            Vector3 lineS = line.localScale;
-            lineS.y = mLineLength;
-            line.localScale = lineS;
-        }
-    }
-
+        
     // Update is called once per frame
     void FixedUpdate() {
         if(mInputEnabled) {
@@ -98,11 +83,16 @@ public class HeartController : MonoBehaviour {
             mCurSpeed = 0.0f;
         }
     }
-        
+                
     void OnPlayerSetState(EntityBase ent, int state) {
         switch(state) {
             case Player.StateNormal:
                 inputEnabled = true;
+                break;
+
+            case Player.StateDead:
+            case Player.StateInvalid:
+                inputEnabled = false;
                 break;
         }
     }
@@ -110,7 +100,7 @@ public class HeartController : MonoBehaviour {
     void UpdatePosition(Vector2 pos) {
         //check bound
         LevelController level = LevelController.instance;
-        level.ClampToBounds(ref pos);
+        level.ClampToBounds(mSphereColl.radius, ref pos);
 
         rigidbody.MovePosition(new Vector3(pos.x, pos.y, mZ));
     }

@@ -6,31 +6,35 @@ public class LevelController : MonoBehaviour {
 
     private static LevelController mInstance;
 
-    private Bounds mBounds;
+    private float mBoundRadius;
     private tk2dCamera mCam;
 
     public static LevelController instance { get { return mInstance; } }
 
-    public Bounds gameBounds { get { return mBounds; } }
+    public float boundRadius { get { return mBoundRadius; } }
     public tk2dCamera gameCamera { get { return mCam; } }
 
-    public bool IsInBounds(Vector2 pos) {
-        return mBounds.Contains(pos);
+    public bool IsInBounds(float radius, Vector2 pos) {
+        Vector2 origin = transform.position;
+
+        Vector2 dpos = pos - origin;
+        float sqrMag = dpos.sqrMagnitude;
+
+        float r = mBoundRadius - radius;
+
+        return sqrMag > r*r;
     }
 
-    public void ClampToBounds(ref Vector2 pos) {
-        if(pos.x < mBounds.min.x) {
-            pos.x = mBounds.min.x;
-        }
-        else if(pos.x > mBounds.max.x) {
-            pos.x = mBounds.max.x;
-        }
+    public void ClampToBounds(float radius, ref Vector2 pos) {
+        Vector2 origin = transform.position;
 
-        if(pos.y < mBounds.min.y) {
-            pos.y = mBounds.min.y;
-        }
-        else if(pos.y > mBounds.max.y) {
-            pos.y = mBounds.max.y;
+        Vector2 dpos = pos - origin;
+        float sqrMag = dpos.sqrMagnitude;
+
+        float r = mBoundRadius - radius;
+
+        if(sqrMag > r*r) {
+            pos = origin + dpos.normalized * r;
         }
     }
 
@@ -50,7 +54,7 @@ public class LevelController : MonoBehaviour {
             float boundSize = screenExts.height;
             float yPad = boundHeightPadding / mCam.CameraSettings.orthographicPixelsPerMeter;
 
-            mBounds.size = new Vector3(boundSize, boundSize - yPad * 2.0f, 1.0f);
+            mBoundRadius = (boundSize * 0.5f) - yPad;
             //Vector3 boundExt = new Vector3(
         }
     }
@@ -66,11 +70,11 @@ public class LevelController : MonoBehaviour {
     }
 
     void OnDrawGizmos() {
-        Gizmos.color = Color.magenta;
+        Gizmos.color = Color.magenta*0.25f;
 
         if(Application.isPlaying) {
-            if(mBounds.size.x > 0.0f && mBounds.size.y > 0.0f) {
-                Gizmos.DrawWireCube(mBounds.center, mBounds.size);
+            if(mBoundRadius > 0.0f) {
+                Gizmos.DrawWireSphere(transform.position, mBoundRadius);
             }
         }
         else {
@@ -81,7 +85,7 @@ public class LevelController : MonoBehaviour {
                 float boundSize = screenExts.height;
                 float yPad = boundHeightPadding / cam.CameraSettings.orthographicPixelsPerMeter;
 
-                Gizmos.DrawWireCube(Vector3.zero, new Vector3(boundSize, boundSize - yPad * 2.0f, 1.0f));
+                Gizmos.DrawWireSphere(transform.position, (boundSize * 0.5f) - yPad);
             }
         }
     }
