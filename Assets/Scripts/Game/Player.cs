@@ -14,7 +14,7 @@ public class Player : EntityBase {
     public Transform ball;
     public float ballBreakForce = 10.0f;
     public float ballBreakAlphaStart = 0.5f;
-    public float ballBreakFadeDelay = 1.0f;
+    public float ballBreakFadeDelay = 0.5f;
 
     public Transform line;
     public float lineBlinkDelay;
@@ -56,7 +56,7 @@ public class Player : EntityBase {
 
     private SpringJoint mBallJoint;
     private SpringJointConfig mBallJointConfig;
-    private tk2dBaseSprite mBallSprite;
+    private BallSpriteController mBallSpriteControl;
     private bool mBallBreaking;
 
     private Vector2 mDirToBall;
@@ -135,8 +135,8 @@ public class Player : EntityBase {
 
         mBallJoint = ball.GetComponent<SpringJoint>();
         mBallJointConfig = new SpringJointConfig(mBallJoint);
-        mBallSprite = ball.GetComponentInChildren<tk2dBaseSprite>();
-
+        mBallSpriteControl = ball.GetComponent<BallSpriteController>();
+        
         autoSpawnFinish = true;
     }
 
@@ -296,6 +296,8 @@ public class Player : EntityBase {
     }
 
     IEnumerator DoBallBreak() {
+        WaitForFixedUpdate wait = new WaitForFixedUpdate();
+
         mBallBreaking = true;
 
         mHUD.SetLinePercent(0.0f);
@@ -310,18 +312,18 @@ public class Player : EntityBase {
         float dt = 0.0f;
 
         while(dt < ballBreakFadeDelay) {
-            yield return new WaitForFixedUpdate();
+            yield return wait;
 
             dt = Mathf.Clamp(dt + Time.fixedDeltaTime, 0.0f, ballBreakFadeDelay);
 
-            mBallSprite.color = Color.Lerp(colorFrom, colorTo, dt / ballBreakFadeDelay);
+            mBallSpriteControl.color = Color.Lerp(colorFrom, colorTo, dt / ballBreakFadeDelay);
         }
 
         ball.collider.enabled = false;
         ball.rigidbody.velocity = Vector3.zero;
         ball.rigidbody.isKinematic = true;
 
-        yield return new WaitForFixedUpdate();
+        yield return wait;
 
         //make sure we are still alive
         if(state == StateNormal) {
@@ -334,14 +336,14 @@ public class Player : EntityBase {
             dt = 0.0f;
 
             while(dt < ballBreakFadeDelay) {
-                yield return new WaitForFixedUpdate();
+                yield return wait;
 
                 dt = Mathf.Clamp(dt + Time.fixedDeltaTime, 0.0f, ballBreakFadeDelay);
 
-                mBallSprite.color = Color.Lerp(colorTo, colorFrom, dt / ballBreakFadeDelay);
+                mBallSpriteControl.color = Color.Lerp(colorTo, colorFrom, dt / ballBreakFadeDelay);
             }
 
-            mBallSprite.color = Color.white;
+            mBallSpriteControl.color = Color.white;
 
             line.gameObject.SetActive(true);
         }
