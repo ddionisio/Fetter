@@ -1,4 +1,4 @@
 Fetter
 ======
 
-NoFutureContest, this game may take it in a literal sense...ie. unfinished.
+A ball and chain game where you are just a tool in society.
