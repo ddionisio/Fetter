@@ -13,3 +13,9 @@
 [submodule "Assets/M8AnimatorPlayMaker"]
 	path = Assets/M8AnimatorPlayMaker
 	url = https://github.com/ddionisio/MateAnimatorPlayMaker.git
+[submodule "Pish/Assets/M8NGUI"]
+	path = Pish/Assets/M8NGUI
+	url = https://github.com/ddionisio/MateNGUI.git
+[submodule "Assets/M8NGUI"]
+	path = Assets/M8NGUI
+	url = https://github.com/ddionisio/MateNGUI.git

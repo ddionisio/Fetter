@@ -4,4 +4,5 @@ public struct InputAction {
     public const int DirY = 1;
     public const int Action = 2;
     public const int Menu = 3;
+    public const int _count = 4;
 }

@@ -14,11 +14,15 @@ TK2DROOT/
 PlayMaker/
 PathologicalGames/
 UnityVS/
+6by7/
+ProCore/
 NGUI.meta
 TK2DROOT.meta
 PlayMaker.meta
 PathologicalGames.meta
 UnityVS.meta
+6by7.meta
+ProCore.meta
 
 Ouya/
 Plugins/Android/
@@ -26,3 +30,6 @@ Ouya.meta
 Plugins/Android.meta
 
 *.suo
+/Common/*.png.meta
+/Common/UI/*.png.meta
+/Common/Fonts/*.png.meta
