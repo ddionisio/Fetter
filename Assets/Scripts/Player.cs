@@ -10,53 +10,22 @@ public class Player : EntityBase {
     public float ballBreakAlphaStart = 0.5f;
     public float ballBreakFadeDelay = 0.5f;
 
-    public Transform line;
-    public float lineBlinkDelay;
+    public Transform linesHolder;
     public float lineMaxLength = 1.5f;
     public float lineDanger = 0.2f;
 
     public float speed = 1.0f; //if useMouse = false
 
     public LayerMask harmLayerMask;
-
-    private struct SpringJointConfig {
-        public Vector3 anchor;
-        public float spring;
-        public float damper;
-        public float minDist;
-        public float maxDist;
-
-        public SpringJointConfig(SpringJoint joint) {
-            anchor = joint.anchor;
-            spring = joint.spring;
-            damper = joint.damper;
-            minDist = joint.minDistance;
-            maxDist = joint.maxDistance;
-        }
-
-        public SpringJoint GenerateJoint(GameObject go, Rigidbody attach) {
-            SpringJoint ret = go.AddComponent<SpringJoint>();
-            ret.connectedBody = attach;
-            ret.anchor = anchor;
-            ret.spring = spring;
-            ret.damper = damper;
-            ret.minDistance = minDist;
-            ret.maxDistance = maxDist;
-            return ret;
-        }
-    }
-
-    private int mCurScore;
+    
     private bool mIsFocus = true;
 
-    private SpringJoint mBallJoint;
-    private SpringJointConfig mBallJointConfig;
+    private Joint mBallJoint;
     private bool mBallBreaking;
     private SphereCollider mBallColl;
 
     private Vector2 mDirToBall;
     private float mLineLength;
-    private bool mLineBlink;
 
     private AnimatorData mBallAnim;
 
@@ -73,7 +42,8 @@ public class Player : EntityBase {
 
     private float mLastInputTime;
 
-    public int score { get { return mCurScore; } }
+    private ChainLine[] mLines;
+    private bool mLinesBlink;
 
     public Vector2 heartToBallDir { get { return mDirToBall; } }
     public float lineLength { get { return mLineLength; } }
@@ -143,6 +113,10 @@ public class Player : EntityBase {
         base.OnDestroy();
     }
 
+    void OnDisable() {
+        SetLineBlink(false);
+    }
+
     protected override void Awake() {
         base.Awake();
 
@@ -154,10 +128,9 @@ public class Player : EntityBase {
         mBallAnim = ball.GetComponent<AnimatorData>();
         mBallColl = ball.GetComponent<SphereCollider>();
 
-        mLineTileMat = line.GetComponent<MatAutoTileScale>();
+        mLines = linesHolder.GetComponentsInChildren<ChainLine>();
 
-        mBallJoint = ball.GetComponent<SpringJoint>();
-        mBallJointConfig = new SpringJointConfig(mBallJoint);
+        mBallJoint = ball.GetComponent<Joint>();
 
         mLineMinLength = (transform.position - ball.position).magnitude - mBallColl.radius - mColl.radius;
     }
@@ -179,8 +152,6 @@ public class Player : EntityBase {
         //init ball
         mBallBreaking = false;
         BallReset();
-
-        mCurScore = 0;
 
         //init hud
     }
@@ -223,15 +194,6 @@ public class Player : EntityBase {
                     if(len > 0.0f) {
                         mDirToBall = dirToBall;
                         mLineLength = len;
-
-                        line.up = mDirToBall;
-
-                        Vector3 linePos = line.position;
-                        line.position = new Vector3(pos.x, pos.y, linePos.z);
-
-                        Vector3 lineS = line.localScale;
-                        lineS.y = len;
-                        line.localScale = lineS;
 
                         //check if line length is going to break
                         if(mLineLength > lineMaxLength) {
@@ -317,10 +279,10 @@ public class Player : EntityBase {
         ball.position = ballPos;
 
         //check if joint is gone
-        SpringJoint springJoint = ball.GetComponent<SpringJoint>();
-        if(springJoint == null) {
-            mBallJoint = mBallJointConfig.GenerateJoint(ball.gameObject, rigidbody);
-        }
+        //SpringJoint springJoint = ball.GetComponent<SpringJoint>();
+        //if(springJoint == null) {
+            //mBallJoint = mBallJointConfig.GenerateJoint(ball.gameObject);
+        //}
 
         //mBallAnim.Play(takeBallSpawn);
     }
@@ -331,24 +293,10 @@ public class Player : EntityBase {
     }
 
     void SetLineBlink(bool blink) {
-        if(mLineBlink != blink) {
-            mLineBlink = blink;
-            if(mLineBlink)
-                StartCoroutine(DoLineBlink());
-            else {
-                mLineTileMat.color = mLineTileMat.defaultColor;
-                StopCoroutine("DoLineBlink");
-            }
-        }
-    }
-
-    IEnumerator DoLineBlink() {
-        WaitForSeconds wait = new WaitForSeconds(lineBlinkDelay);
-        while(mLineBlink) {
-            mLineTileMat.color = Color.clear;
-            yield return wait;
-            mLineTileMat.color = mLineTileMat.defaultColor;
-            yield return wait;
+        if(mLinesBlink != blink) {
+            mLinesBlink = blink;
+            for(int i = 0; i < mLines.Length; i++)
+                mLines[i].blink = mLinesBlink;
         }
     }
 
@@ -358,8 +306,6 @@ public class Player : EntityBase {
         mBallBreaking = true;
 
         //mHUD.SetLinePercent(0.0f);
-
-        line.gameObject.SetActive(false);
 
         if(mBallJoint) {
             Destroy(mBallJoint);
