@@ -1,0 +1,5 @@
+{
+	"items":[
+		{ "name":"common", "items":[{"id":"Growth", "value":10}, {"id":"Score", "value":100}] }
+	]
+}

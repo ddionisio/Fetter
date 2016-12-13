@@ -1,3 +1,5 @@
+# Copy this file to the root of your repository to filter various Unity/Mate files
+
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -8,14 +10,15 @@
 *.sln
 *.pidb
 *.DotSettings
+*.userprefs
 
 NGUI/
 TK2DROOT/
 PlayMaker/
 PathologicalGames/
-UnityVS/
 6by7/
 ProCore/
+ShaderForge/
 NGUI.meta
 TK2DROOT.meta
 PlayMaker.meta
@@ -23,6 +26,7 @@ PathologicalGames.meta
 UnityVS.meta
 6by7.meta
 ProCore.meta
+ShaderForge.meta
 
 Ouya/
 Plugins/Android/
